@@ -330,7 +330,7 @@ MIT — free for learning and portfolio use.
 
 ## 👤 Author
 
-**Ossamix-Dev** — \_Data Analyst
+**Ossamix-Dev** — _Data Analyst
 
 [![GitHub](https://img.shields.io/badge/GitHub-midasoda--arch-181717?style=flat-square&logo=github)](https://github.com/midasoda-arch)
 
