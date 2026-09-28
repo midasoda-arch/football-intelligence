@@ -1,0 +1,97 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: fip-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: football_intelligence
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-football2026secure}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - fip_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d football_intelligence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fip-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis2026secure}
+    ports:
+      - "6379:6379"
+    networks:
+      - fip_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fip-backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-football2026secure}@postgres:5432/football_intelligence
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis2026secure}@redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - fip_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fip-frontend
+    restart: always
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    networks:
+      - fip_network
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: fip-n8n
+    restart: always
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678
+      GENERIC_TIMEZONE: Africa/Casablanca
+      N8N_SECURE_COOKIE: "false"
+    ports:
+      - "5679:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - fip_network
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+networks:
+  fip_network:
+    driver: bridge

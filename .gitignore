@@ -1,0 +1,40 @@
+﻿# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+
+# Node
+node_modules/
+.next/
+build/
+dist/
+
+# ML Models (trop lourds pour GitHub)
+ml-engine/models/saved/*.pkl
+ml-engine/models/saved/*.joblib
+
+# Docker volumes
+data/
+volumes/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
